@@ -1,0 +1,296 @@
+http://www.entityframeworktutorial.net/querying-entity-graph-in-entity-framework.aspx
+
+
+var ctx = new SchoolDBEntities();
+var student = ctx.Students.Find(1);
+
+using (var ctx = new SchoolDBEntities())
+{    
+    var student = (from s in ctx.Students
+                where s.StudentName == "Bill"
+                select s).FirstOrDefault<Student>();
+}
+
+LINQ Method Syntax:
+
+using (var ctx = new SchoolDBEntities())
+{    
+    var student = ctx.Students
+                    .Where(s => s.StudentName == "Bill")
+                    .FirstOrDefault<Student>();
+                    
+                    
+using (var ctx = new SchoolDBEntities())
+{    
+    string name = "Bill";
+    var student = ctx.Students
+                  .Where(s => s.StudentName == name)
+                  .FirstOrDefault<Student>();
+}
+-------------------------------------------------
+using (var ctx = new SchoolDBEntities())
+{    
+    var studentList = ctx.Students.Where(s => s.StudentName == "Bill").ToList();
+}
+--------------------------------
+using (var ctx = new SchoolDBEntities())
+{    
+    var students = ctx.Students.GroupBy(s => s.StandardId);
+
+    var students = from s in ctx.Students 
+                    group s by s.StandardId into studentsByStandard
+                    select studentsByStandard;
+
+    foreach (var groupItem in students)
+    {
+        Console.WriteLine(groupItem.Key);
+
+        foreach (var stud in groupItem)
+        {
+            Console.WriteLine(stud.StudentId);
+        }
+
+    }
+}
+
+---------------------------------
+
+
+var students = from s in ctx.Students
+                       orderby s.StudentName ascending
+                       select s;
+
+
+var students = ctx.Students.OrderBy(s => s.StudentName).ToList();
+        // or descending order  
+        var  descStudents = ctx.Students.OrderByDescending(s => s.StudentName).ToList()
+        
+-------------------------------------------
+
+
+var anonymousObjResult = from s in ctx.Students
+                             where s.StandardId == 1
+                             select new { 
+                                Id = st.StudentId, 
+                                Name = st.StudentName
+                             };
+
+    foreach (var obj in anonymousObjResult)
+    {
+        Console.Write(obj.Name);
+    }
+
+var anonymousObjResult = ctx.Students
+                                .Where(st => st.Standard == 1)
+                                .Select(st => new { 
+                                            Id = st.StudentId, 
+                                            Name = st.StudentName });
+
+    
+--------------------------------
+
+ IList<Student> studList = ctx.Students.ToList<Student>();
+
+    Student std = studList[0];
+
+    //Loads Student address for particular Student only (seperate SQL query)
+    StudentAddress add = std.StudentAddress;
+ -----------------------------------
+ 
+ using (var dbCtx = new SchoolDBEntities())
+{
+    //get student whose StudentId is 1
+    var student = dbCtx.Students.Find(1);
+
+    //edit student name
+    student.StudentName = "Edited name";
+
+    //get DbEntityEntry object for student entity object
+    var entry = dbCtx.Entry(student);
+
+    //get entity information e.g. full name
+    Console.WriteLine("Entity Name: {0}", entry.Entity.GetType().FullName);
+    
+     foreach (var propertyName in entry.CurrentValues.PropertyNames )
+    {
+        Console.WriteLine("Property Name: {0}", propertyName);
+
+        //get original value
+        var orgVal = entry.OriginalValues[propertyName];
+        
+ ------------------------------
+ 
+ 
+ var consulta = from lineaPedido in DataLists.ListaLineasPedido
+               group lineaPedido by lineaPedido.IdPedido into grupo
+               select new
+               {
+                   IdPedido = grupo.Key,
+                   NumPedidos = grupo.Count()
+               };
+               
+    -------------
+    
+    / que contiene el producto de la cantidad por el precio.
+var consulta = (from lineaPedido in DataLists.ListaLineasPedido
+                join producto in DataLists.ListaProductos
+                 on lineaPedido.IdProducto equals producto.Id
+                select lineaPedido.Cantidad * producto.Precio);
+ 
+// Usamos la función de agregación Sum para calcular la suma de todos los elementos
+float resultadoTotal = consulta.Sum();
+
+float valorMaximo = consulta.Max(elemento => elemento.PrecioLinea); (Min)
+
+float valorMedio = consulta.Average(elemento => (float)elemento.PrecioLinea);
+--------------------------------- JOIN---
+ var person = from p in db.People
+                  join e in db.EmailAddresses
+                  on p.BusinessEntityID equals e.BusinessEntityID
+                  where p.FirstName == "KEN"
+                  select new { 
+                               ID = p.BusinessEntityID, 
+                               FirstName = p.FirstName, 
+                               MiddleName = p.MiddleName, 
+                               LastName = p.LastName, 
+                               EmailID = e.EmailAddress1 
+                  }).ToList();
+                  
+     var person = db.People
+                .Join(db.EmailAddresses, 
+                      p => p.BusinessEntityID, 
+                      e => e.BusinessEntityID,
+                      (p, e) => new { 
+                          FirstName = p.FirstName, 
+                          MiddleName = p.MiddleName, 
+                          LastName = p.LastName, 
+                          EmailID = e.EmailAddress1 }
+                      ).Take(5);     
+                      
+   from e in db.Employees
+                  join p in db.People 
+                  on e.BusinessEntityID equals p.BusinessEntityID
+                  join s in db.SalesPersons 
+                  on e.BusinessEntityID equals s.BusinessEntityID
+                  join t in db.SalesTerritories 
+                  on s.TerritoryID equals t.TerritoryID 
+                  where t.CountryRegionCode == "CA"                   
+                      
+   ----------------------------------UNION----
+   //user create posts
+var queryUserPosts = from contents in this._dbContext.Contents
+
+					 where contents.UserId == userId					 
+
+					 select contents;
+
+
+//group posts that user is a part of
+var queryGroupPosts = from contents in this._dbContext.Contents
+					  
+					  where contents.ParentId == parentId
+
+					  select contents;
+
+
+//create union
+var query = queryUserPosts.Union(queryGroupPosts).Distinct().OrderByDescending(x => x.Id);
+---------------------------
+UPDATE
+
+Testdb dbContext = getDataContext();
+cliente1.Nombre = "Carlos Alberto Gonzalez Rodriguez";
+try {
+    dbContext.SubmitChanges();
+}
+catch (Exception ex) {
+    throw (ex);
+}
+
+// Refrescamos el DataContext
+ dbContext.Refresh(RefreshMode.OverwriteCurrentValues, consulta);
+ 
+ // Mostramos nuevamente su valor
+ Console.WriteLine(string.Format("Cliente: {0} (tras update, con Refresh())
+ 
+ ---------------------------INSERT-----
+  FechaNacimiento = new DateTime(1982, 2, 4)
+};
+ 
+// Creamos un nuevo pedido
+Pedido pedido = new Pedido
+{
+    FechaPedido = DateTime.Now
+};
+
+---------------------------------delete
+
+Cliente cliente6 = (from cliente in dbContext.Cliente
+                    where cliente.IdCliente == 6
+                    select cliente).First();
+ 
+// Borramos el cliente
+dbContext.Cliente.DeleteOnSubmit(cliente6);
+ 
+// Por cada pedido del cliente...
+foreach (Pedido pedido in cliente6.Pedido)
+{
+    // Eliminamos el pedido
+    dbContext.Pedido.DeleteOnSubmit(pedido);
+ 
+    // Eliminamos todas las líneas asociadas al pedido
+    dbContext.LineaPedido.DeleteAllOnSubmit(pedido.LineaPedido);
+}
+ 
+dbContext.SubmitChanges();
+
+
+foreach (Pedido pedido in cliente6.Pedido)
+{
+    // Eliminamos el pedido
+    dbContext.Pedido.DeleteOnSubmit(pedido);
+ 
+    // Eliminamos todas las líneas asociadas al pedido
+    foreach (LineaPedido lineaPedido in pedido.LineaPedido)
+    {
+        dbContext.LineaPedido.DeleteOnSubmit(lineaPedido);
+    }
+}
+ // Obtenemos el cliente 5 y el producto boligrafo
+Cliente cliente5 = (from cliente in dbContext.Cliente.
+                        Where(c => c.IdCliente == 5)
+                    select cliente).FirstOrDefault();
+ 
+Producto boligrafo = (from producto in dbContext.Producto.
+                        Where(p => p.Descripcion.Equals("Boligrafo"))
+                      select producto).FirstOrDefault();
+ 
+// Creamos un nuevo pedido asociado al cliente 5
+Pedido pedido = new Pedido
+{
+    FechaPedido = DateTime.Now
+};
+ 
+// Creamos una nueva línea de pedido consistente en dos bolígrafos
+LineaPedido lineaPedido = new LineaPedido
+{
+    Producto = boligrafo,
+    Cantidad = 2
+};
+ 
+// Añadimos la línea de pedido al pedido
+pedido.LineaPedido.Add(lineaPedido);
+ 
+// Añadimos el pedido a la lista.
+cliente5.Pedido.Add(pedido);
+ 
+// Comprometemos los cambios
+try {
+    dbContext.SubmitChanges();
+}
+catch (Exception ex) {
+    throw (ex);
+}
+ 
+ 
+--------------------------------
