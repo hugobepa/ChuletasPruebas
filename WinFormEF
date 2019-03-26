@@ -1,0 +1,145 @@
+
+
+proyecto WINFORM .NET
+add / nevo elemento / data ADO.NET Entity
+ AdventureWorks2017Entities1 entity = new AdventureWorks2017Entities1();
+ 
+ 
+ Cargar tabla
+ 
+  private void Form1_Load(object sender, EventArgs e)
+        {
+            // TODO: esta línea de código carga datos en la tabla 'adventureWorks2017DataSet.Customer' Puede moverla o quitarla según sea necesario.
+            this.customerTableAdapter.Fill(this.adventureWorks2017DataSet.Customer);
+            CargarGrid();
+        }
+
+
+        private void CargarGrid()
+        {
+            using (entity)
+            {
+                IQueryable<Customer> Cliente = from q in entity.Customer select q;
+                List<Customer> lista = Cliente.ToList();
+                DGClientes.DataSource = lista;
+                DGClientes.Refresh();
+
+            }
+        }
+        
+        Obtener valor con botton: int vId = Convert.ToInt32(this.TBId.Text.Trim());
+        extraer celda BBDD y mostrar
+        
+               int vId = Convert.ToInt32(this.txtCustomerId.Text);
+            using (AdvEntities context = new AdvEntities())
+            {
+                IQueryable<Customer> Cliente = from q in context.Customer
+                                               where q.CustomerID == vId
+                                               select q;
+                List<Customer> lista = Cliente.ToList();
+
+                var oCliente = lista[0];
+
+                chkNameStyle.Checked = oCliente.NameStyle;
+                txtTitle.Text = oCliente.Title;
+        
+        private void txtCustomerId_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Return)
+            {
+                BtnInfo_Click(sender, e);
+            }
+        }
+
+
+        private void DGCostumer_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int id = (int)DGCostumer.Rows[e.RowIndex].Cells[0].Value;
+            txtCustomerId.Text = Convert.ToString(id);
+            txtCustomerId_KeyPress(sender, new KeyPressEventArgs((char)Keys.Return));
+        }
+
+        private void btnGrabar_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int CustId = Convert.ToInt32(txtCustomerId.Text);
+
+                MessageBox.Show(Convert.ToString(CustId));
+
+                if (CustId <= 0)
+                {
+                    //Ingresar
+                    Insertar();
+                }
+                else
+                {
+                    Actualizar();
+                }
+
+            }
+            catch (Exception Ex)
+            {
+                MessageBox.Show(Ex.Message);
+            }
+            finally
+            {
+                CargarGrid();
+            }
+            
+
+        }
+        private void Actualizar()
+        {
+            int CustId = Convert.ToInt32(txtCustomerId.Text);
+
+            using (AdvEntities context = new AdvEntities())
+            {
+                Customer oCliente = context.Customer.SingleOrDefault(p => p.CustomerID == CustId);
+
+                oCliente.NameStyle = chkNameStyle.Checked;
+                oCliente.Title = txtTitle.Text;
+                
+                 context.SaveChanges();
+private void Insertar()
+        {
+            try
+            {
+                using (AdvEntities context = new AdvEntities())
+                {
+                    Customer oCliente = new Customer()
+                    {
+                        NameStyle = chkNameStyle.Checked,
+                        Title = txtTitle.Text,
+                       
+                    };
+                    MessageBox.Show(string.Format("Id = {0} - LastName = {1}", oCliente.CustomerID, oCliente.LastName));
+                    
+                    context.Customer.Add(oCliente);
+                    context.SaveChanges();
+                    
+                    
+                     private void btnBorrar_Click(object sender, EventArgs e)
+        {
+               int CustId = Convert.ToInt32(txtCustomerId.Text);
+
+               using (AdvEntities context = new AdvEntities())
+               {
+                   //Customer oCliente = context.Customer.SingleOrDefault(p => p.CustomerID == CustId);
+                   Customer oCliente = (from q in context.Customer
+                                   where q.CustomerID == CustId
+                                   select q).First();
+                     
+                   try
+                   {
+                       context.Customer.Remove(oCliente);
+                       context.SaveChanges();
+                       CargarGrid();
+                   }
+                   catch (Exception Ex)
+                   {
+                       MessageBox.Show(Ex.Message);
+                   }
+
+               }
+        
